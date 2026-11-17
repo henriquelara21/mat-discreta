@@ -16,8 +16,9 @@
 \usepackage{setspace}
 \usepackage{indentfirst}
 \usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
 
-% Nomes em português (caso o babel não esteja disponível)
+
 \renewcommand{\contentsname}{Sumário}
 \renewcommand{\refname}{Referências}
 \renewcommand{\figurename}{Figura}
@@ -266,8 +267,8 @@ A \emph{média dos graus dos amigos} é
 \]
 \end{definicao}
 
-A diferença entre os dois jeitos é o \emph{peso} de cada pessoa. No
-jeito 1, todos têm peso 1. No jeito 2, cada pessoa tem peso igual ao
+A diferença entre os dois casos é o \emph{peso} de cada pessoa. No
+caso 1, todos têm peso 1. No caso 2, cada pessoa tem peso igual ao
 seu número de amigos. Pessoas populares pesam mais, e por isso é de se
 esperar que $\dA$ seja maior que $\dm$.
 
@@ -541,7 +542,7 @@ visto.
 
 Para ver o paradoxo em redes maiores, escrevemos um programa em Python
 usando a biblioteca NetworkX \cite{networkx}. O código está no arquivo
-\texttt{simulacao\_paradoxo.py}, entregue junto com este trabalho.
+\texttt{simulacao\_paradoxo\_amizade.py}, entregue junto com este trabalho.
 
 \subsection{Três redes de 300 pessoas}
 
@@ -578,6 +579,104 @@ Após a construção, analisamos os graus, suas médias e
 variâncias, as médias por indicação e a conectividade
 dos grafos.
 
+
+\begin{table}[htbp]
+\centering
+\caption{Médias e propriedades das três redes geradas
+com Havel--Hakimi ($n=300$).}
+\label{tab:redes}
+\begin{tabular}{lcccccccc}
+\toprule
+Rede & $m$ & $\bar d$ & $\sigma^2$ & $\bar d_A$
+& $\bar d_I$ & Isol. & Comp. & Maior \\
+\midrule
+Anel com atalhos
+& 900 & 6,000 & 0,567 & 6,094 & 6,009
+& 0 & 1 & 300 \\
+Sorteio de pares
+& 938 & 6,253 & 5,656 & 7,158 & 6,305
+& 1 & 11 & 266 \\
+Com populares
+& 891 & 5,940 & 32,783 & 11,459 & 7,088
+& 0 & 33 & 172 \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+{\footnotesize
+Isol.: vértices isolados;
+Comp.: componentes conexas;
+Maior: número de vértices na maior componente.
+Fonte: elaboração própria.}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+
+    \includegraphics[width=0.3\textwidth]{grafo_anel.png}
+    \includegraphics[width=0.3\textwidth]{grafo_pares.png}
+    \includegraphics[width=0.3\textwidth]{grafo_populares.png}
+
+    \caption{Representações das três redes de 300 vértices
+    construídas pelo algoritmo de Havel-Hakimi.
+    As cores dos vértices representam seus graus, e
+    a posição dos vértices foi determinada pelo
+    algoritmo de visualização spring layout.}
+
+    \label{fig:redes}
+
+    \smallskip
+    {\footnotesize Fonte: elaboração própria.}
+\end{figure}
+As três redes apresentam médias de graus próximas de 6,
+mas possuem variâncias bastante diferentes. No anel com
+atalhos, a variância é pequena ($\sigma^2=0{,}567$), e a
+média dos graus dos amigos ($\dA=6{,}094$) fica próxima
+da média geral. Na rede com populares, a variância é muito
+maior ($\sigma^2=32{,}783$), fazendo com que a média dos
+graus dos amigos ($\dA=11{,}459$) seja quase o dobro da
+média dos graus das pessoas ($\dm=5{,}940$).
+
+Esses resultados confirmam a relação demonstrada pelo
+Teorema~\ref{teo:principal}, segundo a qual a diferença
+entre as médias depende da variância dos graus dividida
+pela média dos graus.
+
+Além disso, verificamos diferenças na conectividade.
+O anel com atalhos possui apenas uma componente conexa,
+enquanto a rede de sorteio de pares possui 11 e a rede
+com populares possui 33. Isso mostra que a distribuição
+dos graus não determina, sozinha, a conectividade da rede.
+
+Na rede de sorteio de pares, encontramos um vértice
+isolado. Por isso, a média por indicação foi calculada
+considerando apenas os 299 vértices com pelo menos um
+amigo, conforme discutido anteriormente.
+
+
+\subsection{Aplicação: espalhar uma notícia}
+
+Uma consequência prática do paradoxo é a seguinte: se queremos espalhar
+uma informação numa rede e só podemos avisar poucas pessoas no início,
+pode valer a pena escolher essas pessoas \emph{por indicação} em vez de
+sorteá-las diretamente, porque quem é indicado tende a ter mais amigos.
+
+Testamos isso nas três redes. Escolhemos 15 pessoas para receber a
+notícia no início, de dois jeitos:
+\begin{itemize}
+  \item \textbf{Direto:} sorteamos 15 pessoas diferentes ao acaso.
+  \item \textbf{Por indicação:} sorteamos uma pessoa e ela indica um
+        amigo ao acaso; repetimos até ter 15 pessoas indicadas
+        diferentes.
+\end{itemize}
+Depois, a notícia se espalha em 4 rodadas. Em cada rodada, quem acabou
+de saber a notícia tenta contá-la a cada amigo que ainda não sabe, e
+consegue com probabilidade $0{,}15$. Ao final, contamos quantas pessoas
+souberam (incluindo as 15 iniciais). Repetimos tudo 500 vezes para cada
+rede e cada jeito de escolher, e calculamos as médias
+(Tabela~\ref{tab:noticia}).
+
+
 \begin{table}[htbp]
 \centering
 \caption{Grau médio das 15 pessoas iniciais e
@@ -605,73 +704,6 @@ Com populares
 {\footnotesize Fonte: elaboração própria.}
 \end{table}
 
-
-As três redes apresentam médias de graus próximas de 6,
-mas possuem variâncias bastante diferentes. No anel com
-atalhos, a variância é pequena ($\sigma^2=0{,}567$), e a
-média dos graus dos amigos ($\dA=6{,}094$) fica próxima
-da média geral. Na rede com populares, a variância é muito
-maior ($\sigma^2=32{,}783$), fazendo com que a média dos
-graus dos amigos ($\dA=11{,}459$) seja quase o dobro da
-média dos graus das pessoas ($\dm=5{,}940$).
-
-Esses resultados confirmam a relação demonstrada pelo
-Teorema~\ref{teo:principal}, segundo a qual a diferença
-entre as médias depende da variância dos graus dividida
-pela média dos graus.
-
-Além disso, verificamos diferenças na conectividade.
-O anel com atalhos possui apenas uma componente conexa,
-enquanto a rede de sorteio de pares possui 11 e a rede
-com populares possui 33. Isso mostra que a distribuição
-dos graus não determina, sozinha, a conectividade da rede.
-
-Na rede de sorteio de pares, encontramos um vértice
-isolado. Por isso, a média por indicação foi calculada
-considerando apenas os 299 vértices com pelo menos um
-amigo, conforme discutido anteriormente.
-
-\subsection{Aplicação: espalhar uma notícia}
-
-Uma consequência prática do paradoxo é a seguinte: se queremos espalhar
-uma informação numa rede e só podemos avisar poucas pessoas no início,
-pode valer a pena escolher essas pessoas \emph{por indicação} em vez de
-sorteá-las diretamente, porque quem é indicado tende a ter mais amigos.
-
-Testamos isso nas três redes. Escolhemos 15 pessoas para receber a
-notícia no início, de dois jeitos:
-\begin{itemize}
-  \item \textbf{Direto:} sorteamos 15 pessoas diferentes ao acaso.
-  \item \textbf{Por indicação:} sorteamos uma pessoa e ela indica um
-        amigo ao acaso; repetimos até ter 15 pessoas indicadas
-        diferentes.
-\end{itemize}
-Depois, a notícia se espalha em 4 rodadas. Em cada rodada, quem acabou
-de saber a notícia tenta contá-la a cada amigo que ainda não sabe, e
-consegue com probabilidade $0{,}15$. Ao final, contamos quantas pessoas
-souberam (incluindo as 15 iniciais). Repetimos tudo 500 vezes para cada
-rede e cada jeito de escolher, e calculamos as médias
-(Tabela~\ref{tab:noticia}).
-
-\begin{table}[htbp]
-\centering
-\caption{Grau médio das 15 pessoas iniciais e porcentagem média da rede
-que soube da notícia após 4 rodadas (500 repetições).}\label{tab:noticia}
-\begin{tabular}{lcccc}
-\toprule
- & \multicolumn{2}{c}{Grau médio inicial} & \multicolumn{2}{c}{Alcance (\%)}\\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Rede & Direto & Indicação & Direto & Indicação\\
-\midrule
-Anel com atalhos   & 6,00 & 6,09  & 14,4 & 14,3\\
-Sorteio de pares   & 5,98 & 6,91  & 17,1 & 18,4\\
-Rede com populares & 6,04 & 12,81 & 24,8 & 29,8\\
-\bottomrule
-\end{tabular}
-
-\smallskip
-{\footnotesize Fonte: elaboração própria.}
-\end{table}
 
 Na rede com populares, as pessoas selecionadas por
 indicação apresentaram grau médio de 6,96, contra 5,94
@@ -738,14 +770,6 @@ Paradoxo da Amizade e apresenta uma aplicação computacional
 envolvendo sequências gráficas, o algoritmo de
 Havel-Hakimi, componentes conexas e propagação de
 informações em grafos.
-
-Os teoremas apresentados valem para os grafos que
-satisfazem suas respectivas hipóteses. Já os resultados
-numéricos das simulações dependem das redes artificiais
-construídas e das regras de transmissão escolhidas,
-não podendo ser generalizados diretamente para redes
-sociais reais.
-
 % -----------------------------------------------------------
 \newpage
 \phantomsection
@@ -771,6 +795,7 @@ HAGBERG, Aric A.; SCHULT, Daniel A.; SWART, Pieter J. Exploring network
 structure, dynamics, and function using NetworkX. In: \emph{Proceedings
 of the 7th Python in Science Conference (SciPy 2008)}. Pasadena, 2008.
 p.~11--15.
+
 
 \bibitem{ws}
 WATTS, Duncan J.; STROGATZ, Steven H. Collective dynamics of
